@@ -644,7 +644,7 @@ new THREE.LineBasicMaterial({ color: hex, transparent: true, opacity: 0.45 })
 );
 }
 function update3DScene() {
-while (group.children.length > 0) group.remove(group.children);
+while (group.children.length > 0) group.remove(group.children[0]);
 const target = BODY_DATA[planetDropdown.value] || BODY_DATA.mars;
 const inner = target.r < 1.0;
 const rEarth = inner ? 9.5 : 5.2;
