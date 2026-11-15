@@ -554,7 +554,7 @@
     })();
   </script>
       <!-- 3D SOLAR SYSTEM ADD-ON SCRIPT (THREE.JS) -->
-  <script src="https://cloudflare.com"></script>
+ <script src="https://cloudflare.com"></script>
   <script>
     (function () {
       const box = document.getElementById("addon3dCanvas");
@@ -565,149 +565,179 @@
       if (!box  !planetDropdown  typeof THREE === "undefined") return;
 
       const BODY_DATA = {
-        mercury: { r: 0.387, color: 0x9ca3af, size: 0.35 },
-        venus:   { r: 0.723, color: 0xfbbf24, size: 0.55 },
-        mars:    { r: 1.524, color: 0xef4444, size: 0.48 },
-        jupiter: { r: 5.204, color: 0xf97316, size: 1.15 },
-        saturn:  { r: 9.582, color: 0xfde047, size: 1.00 },
-        uranus:  { r: 19.201, color: 0x38bdf8, size: 0.78 },
-        neptune: { r: 30.047, color: 0x3b82f6, size: 0.76 }
+        mercury: { r: 0.387, color: 0xd1d5db, size: 0.45 },
+        venus:   { r: 0.723, color: 0xfbbf24, size: 0.65 },
+        mars:    { r: 1.524, color: 0xef4444, size: 0.60 },
+        jupiter: { r: 5.204, color: 0xf97316, size: 1.25 },
+        saturn:  { r: 9.582, color: 0xfde047, size: 1.10 },
+        uranus:  { r: 19.201, color: 0x38bdf8, size: 0.85 },
+        neptune: { r: 30.047, color: 0x60a5fa, size: 0.85 }
       };
 
+      const w = box.clientWidth || 600;
+      const h = box.clientHeight || 380;
+
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 400);
+      scene.background = new THREE.Color(0x040814);
+
+      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 500);
       const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(box.clientWidth, box.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio || 1);
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      box.innerHTML = "";
       box.appendChild(renderer.domElement);
 
-      scene.add(new THREE.AmbientLight(0x475569, 1.5));
-      scene.add(new THREE.PointLight(0xffffff, 2.2, 200));
-
-      const starsGeo = new THREE.BufferGeometry();
-      const starPts = [];
-      for (let i = 0; i < 500; i++) {
-        starPts.push((Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160);
+      // Bright Starfield
+      const starGeo = new THREE.BufferGeometry();
+      const starCoords = [];
+      for (let i = 0; i < 600; i++) {
+        starCoords.push((Math.random() - 0.5) * 180, (Math.random() - 0.5) * 180, (Math.random() - 0.5) * 180);
       }
-      starsGeo.setAttribute("position", new THREE.Float32BufferAttribute(starPts, 3));
-      scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.35 })));
+      starGeo.setAttribute("position", new THREE.Float32BufferAttribute(starCoords, 3));
+      scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xcbd5e1, size: 0.45 })));
 
+      // Glowing Yellow Sun + Halo
       const sun = new THREE.Mesh(
-        new THREE.SphereGeometry(1.3, 32, 32),
-            new THREE.MeshBasicMaterial({ color: 0xfacc15 })
-);
-scene.add(sun);
-const group = new THREE.Group();
-scene.add(group);
-const spacecraft = new THREE.Mesh(
-new THREE.ConeGeometry(0.28, 0.85, 12),
-new THREE.MeshBasicMaterial({ color: 0xffffff })
-);
-spacecraft.rotation.z = Math.PI / 2;
-scene.add(spacecraft);
-let simProgress = 0;
-let simActive = false;
-let curveInfo = { rEarth: 5.2, a3d: 6.5, cFocus: 1.3, b3d: 6.3 };
-let theta = 0.65, phi = 0.85, radius = 23, dragging = false, lastPos = { x: 0, y: 0 };
-function syncCamera() {
-camera.position.set(
-radius * Math.sin(phi) * Math.sin(theta),
-radius * Math.cos(phi),
-radius * Math.sin(phi) * Math.cos(theta)
-);
-camera.lookAt(0, 0, 0);
-}
-syncCamera();
-box.addEventListener("pointerdown", function (e) { dragging = true; lastPos = { x: e.clientX, y: e.clientY }; });
-window.addEventListener("pointerup", function () { dragging = false; });
-window.addEventListener("pointermove", function (e) {
-if (!dragging) return;
-theta -= (e.clientX - lastPos.x) * 0.008;
-phi = Math.max(0.2, Math.min(Math.PI - 0.2, phi - (e.clientY - lastPos.y) * 0.008));
-lastPos = { x: e.clientX, y: e.clientY };
-syncCamera();
-});
-box.addEventListener("wheel", function (e) {
-e.preventDefault();
-radius = Math.max(10, Math.min(46, radius + e.deltaY * 0.015));
-syncCamera();
-}, { passive: false });
-function buildOrbitRing(r, hex) {
-const pts = [];
-for (let i = 0; i <= 128; i++) {
-const a = (i / 128) * Math.PI * 2;
-pts.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
-}
-return new THREE.Line(
-new THREE.BufferGeometry().setFromPoints(pts),
-new THREE.LineBasicMaterial({ color: hex, transparent: true, opacity: 0.45 })
-);
-}
-function update3DScene() {
-while (group.children.length > 0) group.remove(group.children[0]);
-const target = BODY_DATA[planetDropdown.value] || BODY_DATA.mars;
-const inner = target.r < 1.0;
-const rEarth = inner ? 9.5 : 5.2;
-const rTarget = inner ? Math.max(2.8, 9.5 * target.r) : Math.min(13.5, 5.2 + Math.log10(target.r) * 5.6);
-group.add(buildOrbitRing(rEarth, 0x38bdf8));
-group.add(buildOrbitRing(rTarget, target.color));
-const earth = new THREE.Mesh(
-new THREE.SphereGeometry(0.55, 24, 24),
-new THREE.MeshStandardMaterial({ color: 0x2563eb, emissive: 0x0b2559 })
-);
-earth.position.set(rEarth, 0, 0);
-group.add(earth);
-const dest = new THREE.Mesh(
-new THREE.SphereGeometry(target.size, 24, 24),
-new THREE.MeshStandardMaterial({ color: target.color, emissive: 0x1a1a1a })
-);
-dest.position.set(-rTarget, 0, 0);
-group.add(dest);
-const a3d = (rEarth + rTarget) / 2;
-const cFocus = a3d - rEarth;
-const b3d = Math.sqrt(Math.max(1.5, a3d * a3d - cFocus * cFocus));
-curveInfo = { rEarth, a3d, cFocus, b3d };
-const arcPts = [];
-for (let i = 0; i <= 96; i++) {
-const t = (i / 96) * Math.PI;
-arcPts.push(new THREE.Vector3(-cFocus + a3d * Math.cos(t), 0, -b3d * Math.sin(t)));
-}
-group.add(new THREE.Line(
-new THREE.BufferGeometry().setFromPoints(arcPts),
-new THREE.LineBasicMaterial({ color: 0x22c55e })
-));
-spacecraft.position.set(rEarth, 0, 0);
-}
-function loop3D() {
-requestAnimationFrame(loop3D);
-sun.rotation.y += 0.004;
-if (simActive) {
-simProgress = Math.min(1, simProgress + 0.006);
-const t = Math.PI * simProgress;
-spacecraft.position.set(
--curveInfo.cFocus + curveInfo.a3d * Math.cos(t),
-0,
--curveInfo.b3d * Math.sin(t)
-);
-spacecraft.rotation.y = t;
-}
-renderer.render(scene, camera);
-}
-planetDropdown.addEventListener("change", function () { simProgress = 0; simActive = false; update3DScene(); });
-if (launchButton) launchButton.addEventListener("click", function () { simProgress = 0; simActive = true; });
-if (resetButton) resetButton.addEventListener("click", function () { simProgress = 0; simActive = false; update3DScene(); });
-if (momButton) momButton.addEventListener("click", function () {
-setTimeout(function () { update3DScene(); simProgress = 0; simActive = true; }, 30);
-});
-window.addEventListener("resize", function () {
-if (!box.clientWidth) return;
-camera.aspect = box.clientWidth / box.clientHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(box.clientWidth, box.clientHeight);
-});
-update3DScene();
-loop3D();
-})();
-        </script>
+        new THREE.SphereGeometry(1.4, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+      );
+      scene.add(sun);
+
+      const sunHalo = new THREE.Mesh(
+        new THREE.SphereGeometry(1.85, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.25 })
+      );
+      scene.add(sunHalo);
+
+      const group = new THREE.Group();
+      scene.add(group);
+
+      // Bright Spacecraft Marker
+      const spacecraft = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
+      scene.add(spacecraft);
+
+      let simProgress = 0;
+      let simActive = false;
+      let curveInfo = { rEarth: 5.5, a3d: 6.8, cFocus: 1.3, b3d: 6.6 };
+
+      let theta = 0.55, phi = 0.92, radius = 25, dragging = false, lastPos = { x: 0, y: 0 };
+      function syncCamera() {
+        camera.position.set(
+          radius * Math.sin(phi) * Math.sin(theta),
+          radius * Math.cos(phi),
+          radius * Math.sin(phi) * Math.cos(theta)
+        );
+        camera.lookAt(0, 0, 0);
+      }
+      syncCamera();
+
+      box.addEventListener("pointerdown", function (e) { dragging = true; lastPos = { x: e.clientX, y: e.clientY }; });
+      window.addEventListener("pointerup", function () { dragging = false; });
+      window.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        theta -= (e.clientX - lastPos.x) * 0.008;
+        phi = Math.max(0.18, Math.min(Math.PI - 0.18, phi - (e.clientY - lastPos.y) * 0.008));
+        lastPos = { x: e.clientX, y: e.clientY };
+        syncCamera();
+      });
+      box.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        radius = Math.max(10, Math.min(48, radius + e.deltaY * 0.015));
+        syncCamera();
+      }, { passive: false });
+
+      function buildThickOrbit(r, hex) {
+        const ringGeo = new THREE.RingGeometry(r - 0.06, r + 0.06, 128);
+        ringGeo.rotateX(-Math.PI / 2);
+        return new THREE.Mesh(
+          ringGeo,
+          new THREE.MeshBasicMaterial({ color: hex, side: THREE.DoubleSide, transparent: true, opacity: 0.65 })
+        );
+      }
+
+      function update3DScene() {
+        while (group.children.length > 0) {
+          group.remove(group.children.at(0));
+        }
+
+        const target = BODY_DATA[planetDropdown.value] || BODY_DATA.mars;
+        const inner = target.r < 1.0;
+
+        const rEarth = inner ? 9.5 : 5.5;
+        const rTarget = inner ? Math.max(3.0, 9.5 * target.r) : Math.min(13.5, 5.5 + Math.log10(target.r) * 5.4);
+
+        group.add(buildThickOrbit(rEarth, 0x38bdf8));
+        group.add(buildThickOrbit(rTarget, target.color));
+
+        // Bright Blue Earth
+        const earth = new THREE.Mesh(
+          new THREE.SphereGeometry(0.62, 24, 24),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+        );
+        earth.position.set(rEarth, 0, 0);
+        group.add(earth);
+
+        // Bright Destination Planet
+        const dest = new THREE.Mesh(
+          new THREE.SphereGeometry(target.size, 24, 24),
+          new THREE.MeshBasicMaterial({ color: target.color })
+        );
+        dest.position.set(-rTarget, 0, 0);
+        group.add(dest);
+
+        // Green Hohmann Transfer 3D Tube
+        const a3d = (rEarth + rTarget) / 2;
+        const cFocus = a3d - rEarth;
+        const b3d = Math.sqrt(Math.max(1.8, a3d * a3d - cFocus * cFocus));
+        curveInfo = { rEarth, a3d, cFocus, b3d };
+
+        const arcPts = [];
+        for (let i = 0; i <= 64; i++) {
+          const t = (i / 64) * Math.PI;
+          arcPts.push(new THREE.Vector3(-cFocus + a3d * Math.cos(t), 0, -b3d * Math.sin(t)));
+        }
+        const curve = new THREE.CatmullRomCurve3(arcPts);
+        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.08, 8, false);
+        group.add(new THREE.Mesh(tubeGeo, new THREE.MeshBasicMaterial({ color: 0x22c55e })));
+
+        spacecraft.position.set(rEarth, 0, 0);
+      }
+
+      function loop3D() {
+        requestAnimationFrame(loop3D);
+        sun.rotation.y += 0.005;
+        if (simActive) {
+          simProgress = Math.min(1, simProgress + 0.006);
+          const t = Math.PI * simProgress;
+          spacecraft.position.set(
+            -curveInfo.cFocus + curveInfo.a3d * Math.cos(t),
+            0,
+            -curveInfo.b3d * Math.sin(t)
+          );
+        }
+        renderer.render(scene, camera);
+      }
+
+      planetDropdown.addEventListener("change", function () { simProgress = 0; simActive = false; update3DScene(); });
+      if (launchButton) launchButton.addEventListener("click", function () { simProgress = 0; simActive = true; });
+      if (resetButton) resetButton.addEventListener("click", function () { simProgress = 0; simActive = false; update3DScene(); });
+      if (momButton) momButton.addEventListener("click", function () {
+        setTimeout(function () { update3DScene(); simProgress = 0; simActive = true; }, 30);
+      });
+
+      window.addEventListener("resize", function () {
+        if (!box.clientWidth) return;
+        camera.aspect = box.clientWidth / box.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(box.clientWidth, box.clientHeight);
+      });
+
+      update3DScene();
+      loop3D();
+    })();
+  </script>
 </body>
 </html>
