@@ -552,9 +552,10 @@
       calculateHohmann();
       renderLoop();
     })();
-  </script>
-      <!-- 3D SOLAR SYSTEM ADD-ON SCRIPT (THREE.JS) -->
- <script>
+ </script>
+
+  <!-- 3D SOLAR SYSTEM ADD-ON SCRIPT (NATIVE 3D PROJECTION) -->
+  <script>
     (function () {
       const box = document.getElementById("addon3dCanvas");
       const planetDropdown = document.getElementById("targetPlanet");
@@ -583,7 +584,7 @@
         neptune: { name: "Neptune", r: 30.047, color: "#60a5fa", size: 13 }
       };
 
-      const stars = [];
+      const stars = new Array();
       for (let i = 0; i < 160; i++) {
         stars.push({
           x: (Math.random() - 0.5) * 900,
@@ -646,7 +647,7 @@
         };
       }
 
-      function drawOrbit3D(radius, color, dashed) {
+      function drawOrbit3D(radius, color) {
         ctx.save();
         ctx.beginPath();
         for (let i = 0; i <= 96; i++) {
@@ -657,7 +658,6 @@
         }
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
-        if (dashed) ctx.setLineDash();
         ctx.stroke();
         ctx.restore();
       }
@@ -694,13 +694,13 @@
           ctx.fillRect(sp.sx, sp.sy, 2, 2);
         }
 
-        const target = BODY_DATA[planetDropdown.value] || BODY_DATA.mars;
+        const target = Reflect.get(BODY_DATA, planetDropdown.value) || BODY_DATA.mars;
         const inner = target.r < 1.0;
         const rEarth = inner ? 185 : 105;
         const rTarget = inner ? Math.max(60, 185 * target.r) : Math.min(255, 105 + Math.log10(target.r) * 105);
 
-        drawOrbit3D(rEarth, "rgba(56, 189, 248, 0.55)", false);
-        drawOrbit3D(rTarget, "rgba(249, 115, 22, 0.6)", false);
+        drawOrbit3D(rEarth, "rgba(56, 189, 248, 0.55)");
+        drawOrbit3D(rTarget, "rgba(249, 115, 22, 0.6)");
 
         const a = (rEarth + rTarget) / 2;
         const cFocus = a - rEarth;
@@ -718,15 +718,13 @@
         }
         ctx.strokeStyle = "#22c55e";
         ctx.lineWidth = 3;
-        ctx.setLineDash();
         ctx.stroke();
         ctx.restore();
 
-        const bodies = [
-          { x: 0, y: 0, z: 0, r: 22, color: "#facc15", label: "SUN" },
-          { x: rEarth, y: 0, z: 0, r: 11, color: "#38bdf8", label: "ORIGIN: EARTH" },
-          { x: -rTarget, y: 0, z: 0, r: target.size, color: target.color, label: "TARGET: " + target.name.toUpperCase() }
-        ];
+        const bodies = new Array();
+        bodies.push({ x: 0, y: 0, z: 0, r: 22, color: "#facc15", label: "SUN" });
+        bodies.push({ x: rEarth, y: 0, z: 0, r: 11, color: "#38bdf8", label: "ORIGIN: EARTH" });
+        bodies.push({ x: -rTarget, y: 0, z: 0, r: target.size, color: target.color, label: "TARGET: " + target.name.toUpperCase() });
 
         if (launched) {
           progress = Math.min(1, progress + 0.006);
@@ -760,3 +758,5 @@
   </script>
 </body>
 </html>
+    
+  
