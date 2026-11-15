@@ -1,0 +1,396 @@
+.note {
+      margin-top: 12px;
+      background: var(--card-inner);
+      border-left: 3px solid var(--saffron);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.83rem;
+      color: #e2e8f0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 360px;
+      background: radial-gradient(circle at center, #0d1730 0%, #040711 100%);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--accent);
+      font-weight: 600;
+      background: var(--card-inner);
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Hohmann Orbit Planner: Earth-to-Planet Trajectory Calculator</h1>
+      <div class="sub">Inspired by ISRO's Mars Orbiter Mission (Mangalyaan) • 2026 NASA Space Apps Challenge</div>
+    </div>
+    <button type="button" class="preset-btn" id="momPresetBtn">Load ISRO Mangalyaan (MOM) Preset</button>
+  </header>
+
+  <main class="grid">
+    <!-- CONTROLS & CALCULATOR PANEL -->
+    <section class="card">
+      <h2>1. Configure Interplanetary Transfer</h2>
+
+      <div class="origin-box">
+        <span><strong>Origin:</strong> Planet Earth (r₁)</span>
+        <span style="color: var(--accent); font-weight: 700;">1.000 AU (149.6M km)</span>
+      </div>
+
+      <label for="targetPlanet">Destination Planet (r₂)</label>
+      <select id="targetPlanet">
+        <option value="mercury">Mercury — 0.387 AU</option>
+        <option value="venus">Venus — 0.723 AU</option>
+        <option value="mars" selected>Mars — 1.524 AU (Mangalyaan Target)</option>
+        <option value="jupiter">Jupiter — 5.204 AU</option>
+        <option value="saturn">Saturn — 9.582 AU</option>
+        <option value="uranus">Uranus — 19.201 AU</option>
+        <option value="neptune">Neptune — 30.047 AU</option>
+      </select>
+
+      <label for="leoParking">Earth Departure Parking Orbit: <strong id="leoText">250 km</strong> (LEO Debris Clearance)</label>
+      <input type="range" id="leoParking" min="200" max="1000" step="50" value="250" />
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Hohmann Travel Time</div>
+          <div class="stat-val highlight" id="daysOut">258.9 Days</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Duration in Months / Yrs</div>
+          <div class="stat-val" id="altTimeOut">8.5 Months</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Transfer Semi-Major Axis</div>
+          <div class="stat-val" id="smaOut">1.262 AU</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Mission Delta-V</div>
+          <div class="stat-val" id="dvOut">5.59 km/s</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="launch-btn" id="launchBtn">Simulate Earth Departure Burn</button>
+        <button type="button" class="reset-btn" id="resetBtn">Reset</button>
+      </div>
+
+      <div class="note" id="missionContext">
+        <strong>Mission Analysis:</strong> Loading trajectory parameters...
+      </div>
+    </section>
+<!-- VISUALIZATION CANVAS PANEL -->
+    <section class="card">
+      <h2>2. Heliocentric Hohmann Transfer Orbit (Origin: Earth)</h2>
+      <canvas id="simCanvas" width="540" height="360"></canvas>
+      <div class="legend">
+        <span><i class="dot" style="background:#facc15;"></i> Sun</span>
+        <span><i class="dot" style="background:#38bdf8;"></i> Earth (Origin)</span>
+        <span><i class="dot" style="background:#ef4444;"></i> Destination Planet</span>
+        <span><i class="dot" style="background:#22c55e;"></i> Hohmann Transfer Ellipse</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- SOLAR SYSTEM REFERENCE TABLE -->
+  <section class="card table-wrap">
+    <h2>3. Solar System Hohmann Transfer Reference Table (Origin: Earth)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Destination Planet</th>
+          <th>Orbital Radius (r₂)</th>
+          <th>Hohmann Travel Time</th>
+          <th>Required Delta-V</th>
+          <th>Launch Window Cycle</th>
+        </tr>
+      </thead>
+      <tbody id="refTableBody"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    Physics: Kepler's 3rd Law &amp; Vis-Viva Hohmann Transfer Equations • Data: NASA NSSDC Planetary Fact Sheet
+  </footer>
+
+  <script>
+    (function () {
+      const AU_KM = 149597870.7;
+      const MU_SUN = 1.32712440018e11; // km^3/s^2
+
+      const PLANETS = {
+        mercury: {
+          name: "Mercury",
+          r: 0.387,
+          color: "#9ca3af",
+          windowDays: 116,
+          info: "Inner planet transfer: spacecraft decelerates tangentially at Earth to drop inward toward Mercury's orbit."
+        },
+        venus: {
+          name: "Venus",
+          r: 0.723,
+          color: "#fbbf24",
+          windowDays: 584,
+          info: "Minimum-energy inward Hohmann half-ellipse from Earth (1.000 AU) to Venus (0.723 AU)."
+        },
+        mars: {
+          name: "Mars",
+          r: 1.524,
+          color: "#ef4444",
+          windowDays: 780,
+          info: "ISRO Mangalyaan Reference: Pure circular Hohmann math yields 258.9 days; India's 2013-14 MOM mission took 298 days due to Earth-orbit raising burns and planetary eccentricity."
+        },
+jupiter: {
+name: "Jupiter",
+r: 5.204,
+color: "#f97316",
+windowDays: 399,
+info: "Outer giant transfer: requires a large prograde departure burn from Earth to reach 5.204 AU."
+},
+saturn: {
+name: "Saturn",
+r: 9.582,
+color: "#fde047",
+windowDays: 378,
+info: "Over 6 years in pure Hohmann coast; deep-space missions often combine Hohmann transfers with planetary gravity assists."
+},
+uranus: {
+name: "Uranus",
+r: 19.201,
+color: "#38bdf8",
+windowDays: 370,
+info: "Deep-space transfer to 19.201 AU taking ~16.0 Earth years along a minimum-energy half-ellipse."
+},
+neptune: {
+name: "Neptune",
+r: 30.047,
+color: "#3b82f6",
+windowDays: 367,
+info: "Farthest major planet: a pure Hohmann transfer from Earth takes ~30.6 Earth years."
+}
+};
+const targetSelect = document.getElementById("targetPlanet");
+const leoInput = document.getElementById("leoParking");
+const leoText = document.getElementById("leoText");
+const daysOut = document.getElementById("daysOut");
+const altTimeOut = document.getElementById("altTimeOut");
+const smaOut = document.getElementById("smaOut");
+const dvOut = document.getElementById("dvOut");
+const missionContext = document.getElementById("missionContext");
+const canvas = document.getElementById("simCanvas");
+const ctx = canvas.getContext("2d");
+let progress = 0;
+let isLaunched = false;
+function computeMetrics(r2, leoAltKm) {
+const r1 = 1.0; // Earth AU
+const a = (r1 + r2) / 2;
+const years = 0.5 * Math.sqrt(Math.pow(a, 3));
+const days = years * 365.25;
+const months = years * 12;
+const r1Km = r1 * AU_KM;
+const r2Km = r2 * AU_KM;
+const dv1 = Math.sqrt(MU_SUN / r1Km) * Math.abs(Math.sqrt((2 * r2Km) / (r1Km + r2Km)) - 1);
+const dv2 = Math.sqrt(MU_SUN / r2Km) * Math.abs(1 - Math.sqrt((2 * r1Km) / (r1Km + r2Km)));
+const leoFactor = 1 + (leoAltKm - 250) * 0.00012;
+const totalDv = (dv1 + dv2) * leoFactor;
+return { a, years, days, months, totalDv };
+}
+function populateReferenceTable() {
+const tbody = document.getElementById("refTableBody");
+tbody.innerHTML = "";
+Object.keys(PLANETS).forEach(function (key) {
+const p = PLANETS[key];
+const m = computeMetrics(p.r, 250);
+const timeStr = m.days >= 1000
+? Math.round(m.days).toLocaleString() + " days (" + m.years.toFixed(2) + " yrs)"
+: m.days.toFixed(1) + " days (" + m.months.toFixed(1) + " mos)";
+const row = document.createElement("tr");
+row.innerHTML =
+"" + p.name + "" +
+"" + p.r.toFixed(3) + " AU" +
+"" + timeStr + "" +
+"" + m.totalDv.toFixed(2) + " km/s" +
+"Every " + p.windowDays + " days";
+tbody.appendChild(row);
+});
+}
+function calculateHohmann() {
+const key = targetSelect.value;
+const leo = Number(leoInput.value);
+leoText.textContent = leo + " km";
+const target = PLANETS[key];
+const m = computeMetrics(target.r, leo);
+daysOut.textContent = m.days >= 1000
+? Math.round(m.days).toLocaleString() + " Days"
+: m.days.toFixed(1) + " Days";
+altTimeOut.textContent = m.years >= 2
+? m.years.toFixed(2) + " Years"
+: m.months.toFixed(1) + " Months";
+smaOut.textContent = m.a.toFixed(3) + " AU";
+dvOut.textContent = m.totalDv.toFixed(2) + " km/s";
+missionContext.innerHTML =
+"Mission Analysis (Earth → " + target.name + "): " +
+target.info +
+" Optimal launch windows repeat every " + target.windowDays + " days.";
+}
+function startLaunchAnimation() {
+progress = 0;
+isLaunched = true;
+}
+function resetSimulation() {
+progress = 0;
+isLaunched = false;
+}
+function loadMangalyaanPreset() {
+targetSelect.value = "mars";
+leoInput.value = 250;
+calculateHohmann();
+startLaunchAnimation();
+}
+function renderLoop() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+const cx = canvas.width / 2;
+const cy = canvas.height / 2;
+const key = targetSelect.value;
+const target = PLANETS[key];
+const inner = target.r < 1.0;
+const rEarth = inner ? 135 : 56;
+const rTarget = inner
+? Math.max(40, 135 * target.r)
+: Math.min(158, 56 + Math.log10(target.r) * 68);
+            // Sun at center
+ctx.beginPath();
+ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+ctx.fillStyle = "#facc15";
+ctx.fill();
+ctx.fillStyle = "#fde047";
+ctx.font = "10px sans-serif";
+ctx.textAlign = "center";
+ctx.fillText("SUN", cx, cy + 24);
+// Earth circular orbit
+ctx.beginPath();
+ctx.arc(cx, cy, rEarth, 0, Math.PI * 2);
+ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+ctx.lineWidth = 1.5;
+ctx.stroke();
+// Target planet circular orbit
+ctx.beginPath();
+ctx.arc(cx, cy, rTarget, 0, Math.PI * 2);
+ctx.strokeStyle = "rgba(249, 115, 22, 0.45)";
+ctx.lineWidth = 1.5;
+ctx.stroke();
+// Hohmann transfer half-ellipse (upper arc from +rEarth to -rTarget)
+const aPx = (rEarth + rTarget) / 2;
+const cFocus = aPx - rEarth;
+const bPx = Math.sqrt(Math.max(120, aPx * aPx - cFocus * cFocus));
+ctx.save();
+ctx.beginPath();
+ctx.ellipse(cx - cFocus, cy, aPx, bPx, 0, 0, Math.PI, true);
+ctx.strokeStyle = "#22c55e";
+ctx.setLineDash([6, 5]);
+ctx.lineWidth = 2.2;
+ctx.stroke();
+ctx.restore();
+// Earth marker (Origin)
+const ex = cx + rEarth;
+const ey = cy;
+ctx.beginPath();
+ctx.arc(ex, ey, 7, 0, Math.PI * 2);
+ctx.fillStyle = "#38bdf8";
+ctx.fill();
+ctx.fillStyle = "#f8fafc";
+ctx.font = "bold 11px sans-serif";
+ctx.fillText("ORIGIN: EARTH", ex, ey - 12);
+// Target planet marker (Destination)
+const tx = cx - rTarget;
+const ty = cy;
+ctx.beginPath();
+ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+ctx.fillStyle = target.color;
+ctx.fill();
+ctx.fillStyle = "#f8fafc";
+ctx.fillText("TARGET: " + target.name.toUpperCase(), tx, ty - 13);
+// Animated spacecraft along the transfer ellipse
+if (isLaunched) {
+progress = Math.min(1, progress + 0.007);
+const theta = Math.PI * progress;
+const sx = (cx - cFocus) + aPx * Math.cos(theta);
+const sy = cy - bPx * Math.sin(theta);
+ctx.beginPath();
+ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
+ctx.fillStyle = "#ffffff";
+ctx.fill();
+ctx.fillStyle = "#22c55e";
+ctx.font = "bold 11px sans-serif";
+ctx.fillText(Math.round(progress * 100) + "%", sx, sy - 10);
+}
+requestAnimationFrame(renderLoop);
+}
+targetSelect.addEventListener("change", function () {
+resetSimulation();
+calculateHohmann();
+});
+leoInput.addEventListener("input", calculateHohmann);
+document.getElementById("launchBtn").addEventListener("click", startLaunchAnimation);
+document.getElementById("resetBtn").addEventListener("click", resetSimulation);
+document.getElementById("momPresetBtn").addEventListener("click", loadMangalyaanPreset);
+populateReferenceTable();
+calculateHohmann();
+renderLoop();
+})();
+</script>
+</body>
+</html>
