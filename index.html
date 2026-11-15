@@ -1,4 +1,194 @@
-.note {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hohmann Orbit Planner: 2D &amp; 3D Trajectory Calculator</title>
+  <style>
+    :root {
+      --bg: #050914;
+      --panel: #0f172a;
+      --card-inner: #080e1d;
+      --border: #1e293b;
+      --accent: #38bdf8;
+      --saffron: #f97316;
+      --green: #22c55e;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+      max-width: 1020px;
+      margin: 0 auto;
+      line-height: 1.45;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .sub {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .preset-btn {
+      background: var(--saffron);
+      color: #ffffff;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .preset-btn:hover { opacity: 0.9; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 780px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      color: var(--saffron);
+      margin-bottom: 12px;
+    }
+
+    .origin-box {
+      background: #091226;
+      border: 1px solid #1d4ed8;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 12px 0 5px;
+    }
+
+    select,
+    input[type="range"] {
+      width: 100%;
+      padding: 9px;
+      border-radius: 7px;
+      background: var(--card-inner);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    input[type="range"] {
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-val {
+      font-size: 1.06rem;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .highlight { color: var(--green); }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .launch-btn {
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      background: var(--green);
+      color: #052e16;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .reset-btn {
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-inner);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+
+    .launch-btn:hover,
+    .reset-btn:hover { opacity: 0.9; }
+        .note {
       margin-top: 12px;
       background: var(--card-inner);
       border-left: 3px solid var(--saffron);
@@ -81,7 +271,7 @@
   </header>
 
   <main class="grid">
-    <!-- CONTROLS & CALCULATOR PANEL -->
+    <!-- 1. CONTROLS & CALCULATOR PANEL -->
     <section class="card">
       <h2>1. Configure Interplanetary Transfer</h2>
 
@@ -132,9 +322,9 @@
         <strong>Mission Analysis:</strong> Loading trajectory parameters...
       </div>
     </section>
-<!-- VISUALIZATION CANVAS PANEL -->
+        <!-- 2. 2D VISUALIZATION CANVAS PANEL -->
     <section class="card">
-      <h2>2. Heliocentric Hohmann Transfer Orbit (Origin: Earth)</h2>
+      <h2>2. 2D Heliocentric Hohmann Transfer Orbit (Origin: Earth)</h2>
       <canvas id="simCanvas" width="540" height="360"></canvas>
       <div class="legend">
         <span><i class="dot" style="background:#facc15;"></i> Sun</span>
@@ -145,7 +335,7 @@
     </section>
   </main>
 
-  <!-- SOLAR SYSTEM REFERENCE TABLE -->
+  <!-- 3. SOLAR SYSTEM REFERENCE TABLE -->
   <section class="card table-wrap">
     <h2>3. Solar System Hohmann Transfer Reference Table (Origin: Earth)</h2>
     <table>
@@ -162,235 +352,362 @@
     </table>
   </section>
 
+  <!-- 4. INTERACTIVE 3D SOLAR SYSTEM SIMULATION -->
+  <section class="card" style="margin-top: 18px;">
+    <h2>4. Interactive 3D Heliocentric Orbit View (Drag to Rotate • Scroll to Zoom)</h2>
+    <div id="addon3dCanvas" style="width:100%; height:380px; border-radius:10px; border:1px solid #1e293b; overflow:hidden; background:#030610; cursor:grab;"></div>
+    <div style="margin-top:8px; font-size:0.78rem; color:#94a3b8; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <span>Synced automatically with your selected planet &amp; departure burn button above</span>
+      <span>Left-drag: Tilt &amp; Orbit • Mouse Wheel: Zoom In/Out</span>
+    </div>
+  </section>
+
   <footer>
     Physics: Kepler's 3rd Law &amp; Vis-Viva Hohmann Transfer Equations • Data: NASA NSSDC Planetary Fact Sheet
   </footer>
 
+  <!-- 2D CALCULATIONS & CANVAS SCRIPT -->
   <script>
     (function () {
       const AU_KM = 149597870.7;
-      const MU_SUN = 1.32712440018e11; // km^3/s^2
+      const MU_SUN = 1.32712440018e11;
 
       const PLANETS = {
-        mercury: {
-          name: "Mercury",
-          r: 0.387,
-          color: "#9ca3af",
-          windowDays: 116,
-          info: "Inner planet transfer: spacecraft decelerates tangentially at Earth to drop inward toward Mercury's orbit."
-        },
-        venus: {
-          name: "Venus",
-          r: 0.723,
-          color: "#fbbf24",
-          windowDays: 584,
-          info: "Minimum-energy inward Hohmann half-ellipse from Earth (1.000 AU) to Venus (0.723 AU)."
-        },
-        mars: {
-          name: "Mars",
-          r: 1.524,
-          color: "#ef4444",
-          windowDays: 780,
-          info: "ISRO Mangalyaan Reference: Pure circular Hohmann math yields 258.9 days; India's 2013-14 MOM mission took 298 days due to Earth-orbit raising burns and planetary eccentricity."
-        },
-jupiter: {
-name: "Jupiter",
-r: 5.204,
-color: "#f97316",
-windowDays: 399,
-info: "Outer giant transfer: requires a large prograde departure burn from Earth to reach 5.204 AU."
-},
-saturn: {
-name: "Saturn",
-r: 9.582,
-color: "#fde047",
-windowDays: 378,
-info: "Over 6 years in pure Hohmann coast; deep-space missions often combine Hohmann transfers with planetary gravity assists."
-},
-uranus: {
-name: "Uranus",
-r: 19.201,
-color: "#38bdf8",
-windowDays: 370,
-info: "Deep-space transfer to 19.201 AU taking ~16.0 Earth years along a minimum-energy half-ellipse."
-},
-neptune: {
-name: "Neptune",
-r: 30.047,
-color: "#3b82f6",
-windowDays: 367,
-info: "Farthest major planet: a pure Hohmann transfer from Earth takes ~30.6 Earth years."
+            mercury: { name: "Mercury", r: 0.387, color: "#9ca3af", windowDays: 116, info: "Inner planet transfer: spacecraft decelerates tangentially at Earth to drop inward toward Mercury's orbit." },
+        venus:   { name: "Venus",   r: 0.723, color: "#fbbf24", windowDays: 584, info: "Minimum-energy inward Hohmann half-ellipse from Earth (1.000 AU) to Venus (0.723 AU)." },
+        mars:    { name: "Mars",    r: 1.524, color: "#ef4444", windowDays: 780, info: "ISRO Mangalyaan Reference: Pure circular Hohmann math yields 258.9 days; India's 2013-14 MOM mission took 298 days due to Earth-orbit raising burns and planetary eccentricity." },
+        jupiter: { name: "Jupiter", r: 5.204, color: "#f97316", windowDays: 399, info: "Outer giant transfer: requires a large prograde departure burn from Earth to reach 5.204 AU." },
+        saturn:  { name: "Saturn",  r: 9.582, color: "#fde047", windowDays: 378, info: "Over 6 years in pure Hohmann coast; deep-space missions often combine Hohmann transfers with planetary gravity assists." },
+        uranus:  { name: "Uranus",  r: 19.201, color: "#38bdf8", windowDays: 370, info: "Deep-space transfer to 19.201 AU taking ~16.0 Earth years along a minimum-energy half-ellipse." },
+        neptune: { name: "Neptune", r: 30.047, color: "#3b82f6", windowDays: 367, info: "Farthest major planet: a pure Hohmann transfer from Earth takes ~30.6 Earth years." }
+      };
+
+      const targetSelect = document.getElementById("targetPlanet");
+      const leoInput = document.getElementById("leoParking");
+      const leoText = document.getElementById("leoText");
+      const daysOut = document.getElementById("daysOut");
+      const altTimeOut = document.getElementById("altTimeOut");
+      const smaOut = document.getElementById("smaOut");
+      const dvOut = document.getElementById("dvOut");
+      const missionContext = document.getElementById("missionContext");
+      const canvas = document.getElementById("simCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let progress = 0;
+      let isLaunched = false;
+
+      function computeMetrics(r2, leoAltKm) {
+        const r1 = 1.0;
+        const a = (r1 + r2) / 2;
+        const years = 0.5 * Math.sqrt(Math.pow(a, 3));
+        const days = years * 365.25;
+        const months = years * 12;
+
+        const r1Km = r1 * AU_KM;
+        const r2Km = r2 * AU_KM;
+        const dv1 = Math.sqrt(MU_SUN / r1Km) * Math.abs(Math.sqrt((2 * r2Km) / (r1Km + r2Km)) - 1);
+        const dv2 = Math.sqrt(MU_SUN / r2Km) * Math.abs(1 - Math.sqrt((2 * r1Km) / (r1Km + r2Km)));
+        const leoFactor = 1 + (leoAltKm - 250) * 0.00012;
+        const totalDv = (dv1 + dv2) * leoFactor;
+
+        return { a, years, days, months, totalDv };
+      }
+
+      function populateReferenceTable() {
+        const tbody = document.getElementById("refTableBody");
+        tbody.innerHTML = "";
+
+        Object.keys(PLANETS).forEach(function (key) {
+          const p = PLANETS[key];
+          const m = computeMetrics(p.r, 250);
+          const timeStr = m.days >= 1000
+            ? Math.round(m.days).toLocaleString() + " days (" + m.years.toFixed(2) + " yrs)"
+            : m.days.toFixed(1) + " days (" + m.months.toFixed(1) + " mos)";
+
+          const row = document.createElement("tr");
+          row.innerHTML =
+            "<td><strong>" + p.name + "</strong></td>" +
+            "<td>" + p.r.toFixed(3) + " AU</td>" +
+            "<td style='color:#22c55e;font-weight:600;'>" + timeStr + "</td>" +
+            "<td>" + m.totalDv.toFixed(2) + " km/s</td>" +
+            "<td>Every " + p.windowDays + " days</td>";
+          tbody.appendChild(row);
+        });
+      }
+
+      function calculateHohmann() {
+        const key = targetSelect.value;
+        const leo = Number(leoInput.value);
+        leoText.textContent = leo + " km";
+
+        const target = PLANETS[key];
+        const m = computeMetrics(target.r, leo);
+            daysOut.textContent = m.days >= 1000 ? Math.round(m.days).toLocaleString() + " Days" : m.days.toFixed(1) + " Days";
+        altTimeOut.textContent = m.years >= 2 ? m.years.toFixed(2) + " Years" : m.months.toFixed(1) + " Months";
+        smaOut.textContent = m.a.toFixed(3) + " AU";
+        dvOut.textContent = m.totalDv.toFixed(2) + " km/s";
+
+        missionContext.innerHTML =
+          "<strong>Mission Analysis (Earth &rarr; " + target.name + "):</strong> " +
+          target.info + " Optimal launch windows repeat every <strong>" + target.windowDays + " days</strong>.";
+      }
+
+      function renderLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const key = targetSelect.value;
+        const target = PLANETS[key];
+        const inner = target.r < 1.0;
+
+        const rEarth = inner ? 135 : 56;
+        const rTarget = inner ? Math.max(40, 135 * target.r) : Math.min(158, 56 + Math.log10(target.r) * 68);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+        ctx.fillStyle = "#facc15";
+        ctx.fill();
+        ctx.fillStyle = "#fde047";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("SUN", cx, cy + 24);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, rEarth, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, rTarget, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(249, 115, 22, 0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        const aPx = (rEarth + rTarget) / 2;
+        const cFocus = aPx - rEarth;
+        const bPx = Math.sqrt(Math.max(120, aPx * aPx - cFocus * cFocus));
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx - cFocus, cy, aPx, bPx, 0, 0, Math.PI, true);
+        ctx.strokeStyle = "#22c55e";
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        ctx.restore();
+
+        const ex = cx + rEarth;
+        const ey = cy;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 7, 0, Math.PI * 2);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fill();
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText("ORIGIN: EARTH", ex, ey - 12);
+
+        const tx = cx - rTarget;
+        const ty = cy;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+        ctx.fillStyle = target.color;
+        ctx.fill();
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillText("TARGET: " + target.name.toUpperCase(), tx, ty - 13);
+
+        if (isLaunched) {
+          progress = Math.min(1, progress + 0.007);
+          const theta = Math.PI * progress;
+          const sx = (cx - cFocus) + aPx * Math.cos(theta);
+          const sy = cy - bPx * Math.sin(theta);
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+
+          ctx.fillStyle = "#22c55e";
+          ctx.font = "bold 11px sans-serif";
+          ctx.fillText(Math.round(progress * 100) + "%", sx, sy - 10);
+        }
+
+        requestAnimationFrame(renderLoop);
+      }
+
+      targetSelect.addEventListener("change", function () { progress = 0; isLaunched = false; calculateHohmann(); });
+      leoInput.addEventListener("input", calculateHohmann);
+      document.getElementById("launchBtn").addEventListener("click", function () { progress = 0; isLaunched = true; });
+      document.getElementById("resetBtn").addEventListener("click", function () { progress = 0; isLaunched = false; });
+      document.getElementById("momPresetBtn").addEventListener("click", function () {
+        targetSelect.value = "mars";
+        leoInput.value = 250;
+        calculateHohmann();
+        progress = 0;
+        isLaunched = true;
+      });
+
+      populateReferenceTable();
+      calculateHohmann();
+      renderLoop();
+    })();
+  </script>
+      <!-- 3D SOLAR SYSTEM ADD-ON SCRIPT (THREE.JS) -->
+  <script src="https://cloudflare.com"></script>
+  <script>
+    (function () {
+      const box = document.getElementById("addon3dCanvas");
+      const planetDropdown = document.getElementById("targetPlanet");
+      const launchButton = document.getElementById("launchBtn");
+      const resetButton = document.getElementById("resetBtn");
+      const momButton = document.getElementById("momPresetBtn");
+      if (!box  !planetDropdown  typeof THREE === "undefined") return;
+
+      const BODY_DATA = {
+        mercury: { r: 0.387, color: 0x9ca3af, size: 0.35 },
+        venus:   { r: 0.723, color: 0xfbbf24, size: 0.55 },
+        mars:    { r: 1.524, color: 0xef4444, size: 0.48 },
+        jupiter: { r: 5.204, color: 0xf97316, size: 1.15 },
+        saturn:  { r: 9.582, color: 0xfde047, size: 1.00 },
+        uranus:  { r: 19.201, color: 0x38bdf8, size: 0.78 },
+        neptune: { r: 30.047, color: 0x3b82f6, size: 0.76 }
+      };
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 400);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(box.clientWidth, box.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio || 1);
+      box.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0x475569, 1.5));
+      scene.add(new THREE.PointLight(0xffffff, 2.2, 200));
+
+      const starsGeo = new THREE.BufferGeometry();
+      const starPts = [];
+      for (let i = 0; i < 500; i++) {
+        starPts.push((Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160);
+      }
+      starsGeo.setAttribute("position", new THREE.Float32BufferAttribute(starPts, 3));
+      scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.35 })));
+
+      const sun = new THREE.Mesh(
+        new THREE.SphereGeometry(1.3, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+);
+scene.add(sun);
+const group = new THREE.Group();
+scene.add(group);
+const spacecraft = new THREE.Mesh(
+new THREE.ConeGeometry(0.28, 0.85, 12),
+new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+spacecraft.rotation.z = Math.PI / 2;
+scene.add(spacecraft);
+let simProgress = 0;
+let simActive = false;
+let curveInfo = { rEarth: 5.2, a3d: 6.5, cFocus: 1.3, b3d: 6.3 };
+let theta = 0.65, phi = 0.85, radius = 23, dragging = false, lastPos = { x: 0, y: 0 };
+function syncCamera() {
+camera.position.set(
+radius * Math.sin(phi) * Math.sin(theta),
+radius * Math.cos(phi),
+radius * Math.sin(phi) * Math.cos(theta)
+);
+camera.lookAt(0, 0, 0);
 }
-};
-const targetSelect = document.getElementById("targetPlanet");
-const leoInput = document.getElementById("leoParking");
-const leoText = document.getElementById("leoText");
-const daysOut = document.getElementById("daysOut");
-const altTimeOut = document.getElementById("altTimeOut");
-const smaOut = document.getElementById("smaOut");
-const dvOut = document.getElementById("dvOut");
-const missionContext = document.getElementById("missionContext");
-const canvas = document.getElementById("simCanvas");
-const ctx = canvas.getContext("2d");
-let progress = 0;
-let isLaunched = false;
-function computeMetrics(r2, leoAltKm) {
-const r1 = 1.0; // Earth AU
-const a = (r1 + r2) / 2;
-const years = 0.5 * Math.sqrt(Math.pow(a, 3));
-const days = years * 365.25;
-const months = years * 12;
-const r1Km = r1 * AU_KM;
-const r2Km = r2 * AU_KM;
-const dv1 = Math.sqrt(MU_SUN / r1Km) * Math.abs(Math.sqrt((2 * r2Km) / (r1Km + r2Km)) - 1);
-const dv2 = Math.sqrt(MU_SUN / r2Km) * Math.abs(1 - Math.sqrt((2 * r1Km) / (r1Km + r2Km)));
-const leoFactor = 1 + (leoAltKm - 250) * 0.00012;
-const totalDv = (dv1 + dv2) * leoFactor;
-return { a, years, days, months, totalDv };
-}
-function populateReferenceTable() {
-const tbody = document.getElementById("refTableBody");
-tbody.innerHTML = "";
-Object.keys(PLANETS).forEach(function (key) {
-const p = PLANETS[key];
-const m = computeMetrics(p.r, 250);
-const timeStr = m.days >= 1000
-? Math.round(m.days).toLocaleString() + " days (" + m.years.toFixed(2) + " yrs)"
-: m.days.toFixed(1) + " days (" + m.months.toFixed(1) + " mos)";
-const row = document.createElement("tr");
-row.innerHTML =
-"" + p.name + "" +
-"" + p.r.toFixed(3) + " AU" +
-"" + timeStr + "" +
-"" + m.totalDv.toFixed(2) + " km/s" +
-"Every " + p.windowDays + " days";
-tbody.appendChild(row);
+syncCamera();
+box.addEventListener("pointerdown", function (e) { dragging = true; lastPos = { x: e.clientX, y: e.clientY }; });
+window.addEventListener("pointerup", function () { dragging = false; });
+window.addEventListener("pointermove", function (e) {
+if (!dragging) return;
+theta -= (e.clientX - lastPos.x) * 0.008;
+phi = Math.max(0.2, Math.min(Math.PI - 0.2, phi - (e.clientY - lastPos.y) * 0.008));
+lastPos = { x: e.clientX, y: e.clientY };
+syncCamera();
 });
+box.addEventListener("wheel", function (e) {
+e.preventDefault();
+radius = Math.max(10, Math.min(46, radius + e.deltaY * 0.015));
+syncCamera();
+}, { passive: false });
+function buildOrbitRing(r, hex) {
+const pts = [];
+for (let i = 0; i <= 128; i++) {
+const a = (i / 128) * Math.PI * 2;
+pts.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
 }
-function calculateHohmann() {
-const key = targetSelect.value;
-const leo = Number(leoInput.value);
-leoText.textContent = leo + " km";
-const target = PLANETS[key];
-const m = computeMetrics(target.r, leo);
-daysOut.textContent = m.days >= 1000
-? Math.round(m.days).toLocaleString() + " Days"
-: m.days.toFixed(1) + " Days";
-altTimeOut.textContent = m.years >= 2
-? m.years.toFixed(2) + " Years"
-: m.months.toFixed(1) + " Months";
-smaOut.textContent = m.a.toFixed(3) + " AU";
-dvOut.textContent = m.totalDv.toFixed(2) + " km/s";
-missionContext.innerHTML =
-"Mission Analysis (Earth → " + target.name + "): " +
-target.info +
-" Optimal launch windows repeat every " + target.windowDays + " days.";
+return new THREE.Line(
+new THREE.BufferGeometry().setFromPoints(pts),
+new THREE.LineBasicMaterial({ color: hex, transparent: true, opacity: 0.45 })
+);
 }
-function startLaunchAnimation() {
-progress = 0;
-isLaunched = true;
-}
-function resetSimulation() {
-progress = 0;
-isLaunched = false;
-}
-function loadMangalyaanPreset() {
-targetSelect.value = "mars";
-leoInput.value = 250;
-calculateHohmann();
-startLaunchAnimation();
-}
-function renderLoop() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-const cx = canvas.width / 2;
-const cy = canvas.height / 2;
-const key = targetSelect.value;
-const target = PLANETS[key];
+function update3DScene() {
+while (group.children.length > 0) group.remove(group.children);
+const target = BODY_DATA[planetDropdown.value] || BODY_DATA.mars;
 const inner = target.r < 1.0;
-const rEarth = inner ? 135 : 56;
-const rTarget = inner
-? Math.max(40, 135 * target.r)
-: Math.min(158, 56 + Math.log10(target.r) * 68);
-            // Sun at center
-ctx.beginPath();
-ctx.arc(cx, cy, 13, 0, Math.PI * 2);
-ctx.fillStyle = "#facc15";
-ctx.fill();
-ctx.fillStyle = "#fde047";
-ctx.font = "10px sans-serif";
-ctx.textAlign = "center";
-ctx.fillText("SUN", cx, cy + 24);
-// Earth circular orbit
-ctx.beginPath();
-ctx.arc(cx, cy, rEarth, 0, Math.PI * 2);
-ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
-ctx.lineWidth = 1.5;
-ctx.stroke();
-// Target planet circular orbit
-ctx.beginPath();
-ctx.arc(cx, cy, rTarget, 0, Math.PI * 2);
-ctx.strokeStyle = "rgba(249, 115, 22, 0.45)";
-ctx.lineWidth = 1.5;
-ctx.stroke();
-// Hohmann transfer half-ellipse (upper arc from +rEarth to -rTarget)
-const aPx = (rEarth + rTarget) / 2;
-const cFocus = aPx - rEarth;
-const bPx = Math.sqrt(Math.max(120, aPx * aPx - cFocus * cFocus));
-ctx.save();
-ctx.beginPath();
-ctx.ellipse(cx - cFocus, cy, aPx, bPx, 0, 0, Math.PI, true);
-ctx.strokeStyle = "#22c55e";
-ctx.setLineDash([6, 5]);
-ctx.lineWidth = 2.2;
-ctx.stroke();
-ctx.restore();
-// Earth marker (Origin)
-const ex = cx + rEarth;
-const ey = cy;
-ctx.beginPath();
-ctx.arc(ex, ey, 7, 0, Math.PI * 2);
-ctx.fillStyle = "#38bdf8";
-ctx.fill();
-ctx.fillStyle = "#f8fafc";
-ctx.font = "bold 11px sans-serif";
-ctx.fillText("ORIGIN: EARTH", ex, ey - 12);
-// Target planet marker (Destination)
-const tx = cx - rTarget;
-const ty = cy;
-ctx.beginPath();
-ctx.arc(tx, ty, 8, 0, Math.PI * 2);
-ctx.fillStyle = target.color;
-ctx.fill();
-ctx.fillStyle = "#f8fafc";
-ctx.fillText("TARGET: " + target.name.toUpperCase(), tx, ty - 13);
-// Animated spacecraft along the transfer ellipse
-if (isLaunched) {
-progress = Math.min(1, progress + 0.007);
-const theta = Math.PI * progress;
-const sx = (cx - cFocus) + aPx * Math.cos(theta);
-const sy = cy - bPx * Math.sin(theta);
-ctx.beginPath();
-ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
-ctx.fillStyle = "#ffffff";
-ctx.fill();
-ctx.fillStyle = "#22c55e";
-ctx.font = "bold 11px sans-serif";
-ctx.fillText(Math.round(progress * 100) + "%", sx, sy - 10);
+const rEarth = inner ? 9.5 : 5.2;
+const rTarget = inner ? Math.max(2.8, 9.5 * target.r) : Math.min(13.5, 5.2 + Math.log10(target.r) * 5.6);
+group.add(buildOrbitRing(rEarth, 0x38bdf8));
+group.add(buildOrbitRing(rTarget, target.color));
+const earth = new THREE.Mesh(
+new THREE.SphereGeometry(0.55, 24, 24),
+new THREE.MeshStandardMaterial({ color: 0x2563eb, emissive: 0x0b2559 })
+);
+earth.position.set(rEarth, 0, 0);
+group.add(earth);
+const dest = new THREE.Mesh(
+new THREE.SphereGeometry(target.size, 24, 24),
+new THREE.MeshStandardMaterial({ color: target.color, emissive: 0x1a1a1a })
+);
+dest.position.set(-rTarget, 0, 0);
+group.add(dest);
+const a3d = (rEarth + rTarget) / 2;
+const cFocus = a3d - rEarth;
+const b3d = Math.sqrt(Math.max(1.5, a3d * a3d - cFocus * cFocus));
+curveInfo = { rEarth, a3d, cFocus, b3d };
+const arcPts = [];
+for (let i = 0; i <= 96; i++) {
+const t = (i / 96) * Math.PI;
+arcPts.push(new THREE.Vector3(-cFocus + a3d * Math.cos(t), 0, -b3d * Math.sin(t)));
 }
-requestAnimationFrame(renderLoop);
+group.add(new THREE.Line(
+new THREE.BufferGeometry().setFromPoints(arcPts),
+new THREE.LineBasicMaterial({ color: 0x22c55e })
+));
+spacecraft.position.set(rEarth, 0, 0);
 }
-targetSelect.addEventListener("change", function () {
-resetSimulation();
-calculateHohmann();
+function loop3D() {
+requestAnimationFrame(loop3D);
+sun.rotation.y += 0.004;
+if (simActive) {
+simProgress = Math.min(1, simProgress + 0.006);
+const t = Math.PI * simProgress;
+spacecraft.position.set(
+-curveInfo.cFocus + curveInfo.a3d * Math.cos(t),
+0,
+-curveInfo.b3d * Math.sin(t)
+);
+spacecraft.rotation.y = t;
+}
+renderer.render(scene, camera);
+}
+planetDropdown.addEventListener("change", function () { simProgress = 0; simActive = false; update3DScene(); });
+if (launchButton) launchButton.addEventListener("click", function () { simProgress = 0; simActive = true; });
+if (resetButton) resetButton.addEventListener("click", function () { simProgress = 0; simActive = false; update3DScene(); });
+if (momButton) momButton.addEventListener("click", function () {
+setTimeout(function () { update3DScene(); simProgress = 0; simActive = true; }, 30);
 });
-leoInput.addEventListener("input", calculateHohmann);
-document.getElementById("launchBtn").addEventListener("click", startLaunchAnimation);
-document.getElementById("resetBtn").addEventListener("click", resetSimulation);
-document.getElementById("momPresetBtn").addEventListener("click", loadMangalyaanPreset);
-populateReferenceTable();
-calculateHohmann();
-renderLoop();
+window.addEventListener("resize", function () {
+if (!box.clientWidth) return;
+camera.aspect = box.clientWidth / box.clientHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(box.clientWidth, box.clientHeight);
+});
+update3DScene();
+loop3D();
 })();
-</script>
+        </script>
 </body>
 </html>
